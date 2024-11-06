@@ -210,7 +210,7 @@ func getAPIs() []*API {
 	var bytes []byte
 	var source string
 	apiListFile := filepath.Join(genDirRoot(), "api-list.json")
-	if *useCache {
+	if !*useCache {
 		if !*publicOnly {
 			log.Fatalf("-cache=true not compatible with -publiconly=false")
 		}
