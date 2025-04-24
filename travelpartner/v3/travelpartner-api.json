@@ -399,7 +399,7 @@
               ],
               "parameters": {
                 "filter": {
-                  "description": "Optional. The conditions (fields and expressions) used to filter HotelViews. The syntax requires spaces surrounding the `in` operator. Otherwise, spaces can be omitted. Conditions cannot be joined. The `hotelId` field can be used to select specific hotels. The `liveOnGoogle` field can select properties that Google shows, or properties that are omitted in google search results. The `matchStatus` field can be used to filter the list of HotelViews returned for the account. Examples of valid conditions and their syntax are as follows: * `hotelId = 'hotel_ABC'` * `hotelId in ('hotel_ABC', 'hotel_XYZ')` * `liveOnGoogle = 'TRUE'` * `liveOnGoogle = 'FALSE'` * `matchStatus = 'NOT_MATCHED'` * `matchStatus in ('NOT_MATCHED', 'MATCHED', 'MAP_OVERLAP')`",
+                  "description": "Optional. The conditions (fields and expressions) used to filter HotelViews. The syntax requires spaces surrounding the `in` operator. Otherwise, spaces can be omitted. Conditions cannot be joined. The `hotelId` field can be used to select specific hotels. The `liveOnGoogle` field can select properties that Google shows, or properties that are omitted in google search results. A value of 'TRUE' includes properties that are conditionally active, e.g. LIVE_ON_GOOGLE_STATUS_ACTIVE_OUTSIDE_DSA_REGION. The `matchStatus` field can be used to filter the list of HotelViews returned for the account. Examples of valid conditions and their syntax are as follows: * `hotelId = 'hotel_ABC'` * `hotelId in ('hotel_ABC', 'hotel_XYZ')` * `liveOnGoogle = 'TRUE'` * `liveOnGoogle = 'FALSE'` * `matchStatus = 'NOT_MATCHED'` * `matchStatus in ('NOT_MATCHED', 'MATCHED', 'MAP_OVERLAP')`",
                   "location": "query",
                   "type": "string"
                 },
@@ -556,7 +556,7 @@
         "listings": {
           "methods": {
             "verify": {
-              "description": "Returns verified listings with data issues and serving eligibilities.",
+              "description": "Returns verified listings with data issues and serving eligibilities for VR partners only.",
               "flatPath": "v3/accounts/{accountsId}/listings:verify",
               "httpMethod": "POST",
               "id": "travelpartner.accounts.listings.verify",
@@ -599,7 +599,7 @@
                   "type": "string"
                 },
                 "filter": {
-                  "description": "The conditions (fields and expressions) used to filter the participation metrics for the account being queried. The syntax requires spaces surrounding the `in` operator. Otherwise, spaces can be omitted. Conditions can be joined using the `AND` operator. **Important:** The correct syntax to add multiple conditions is: `\"?filter==%20AND%20=...\"` The `date` field is required. All other fields are optional. Examples of valid conditions are as follows: * `advanceBookingWindow = 2` * `advanceBookingWindow \u003e= 0` * `advanceBookingWindow \u003c= 5` * `advanceBookingWindow between 1 and 5` * `checkinDate = '2020-10-01'` * `checkinDate \u003e= '2020-10-01'` * `checkinDate \u003c= '2020-10-01'` * `checkinDate between '2020-10-01' and '2020-10-05'` * `date = '2020-02-04'` * `date between '2020-02-04' and '2020-02-09'` * `deviceType = 'TABLET'` * `deviceType in ('MOBILE', 'TABLET')` * `hotelRegionCode = 'US'` * `hotelRegionCode in ('US', 'CA')` * `lengthOfStayDays = 2` * `lengthOfStayDays \u003e= 0` * `lengthOfStayDays \u003c= 5` * `lengthOfStayDays between 1 and 5` * `occupancy = 2` * `occupancy \u003e= 0` * `occupancy \u003c= 5` * `occupancy between 1 and 5` * `partnerHotelId = 'AAA'` * `partnerHotelId in ('AAA', 'BBB')` * `userRegionCode = 'US'` * `userRegionCode in ('US', 'CA')`",
+                  "description": "The conditions (fields and expressions) used to filter the participation metrics for the account being queried. The syntax requires spaces surrounding the `in` operator. Otherwise, spaces can be omitted. Conditions can be joined using the `AND` operator. **Important:** The correct syntax to add multiple conditions is: `\"?filter==%20AND%20=...\"` The `date` field is required. All other fields are optional. Examples of valid conditions are as follows: * `advanceBookingWindow = 2` * `advanceBookingWindow \u003e= 0` * `advanceBookingWindow \u003c= 5` * `checkinDate = '2020-10-01'` * `checkinDate \u003e= '2020-10-01'` * `checkinDate \u003c= '2020-10-01'` * `checkinDate between '2020-10-01' and '2020-10-05'` * `date = '2020-02-04'` * `date between '2020-02-04' and '2020-02-09'` * `deviceType = 'TABLET'` * `deviceType in ('MOBILE', 'TABLET')` * `hotelRegionCode = 'US'` * `hotelRegionCode in ('US', 'CA')` * `lengthOfStayDays = 2` * `lengthOfStayDays \u003e= 0` * `lengthOfStayDays \u003c= 5` * `occupancy = 2` * `occupancy \u003e= 0` * `occupancy \u003c= 5` * `occupancy between 1 and 5` * `partnerHotelId = 'AAA'` * `partnerHotelId in ('AAA', 'BBB')` * `userRegionCode = 'US'` * `userRegionCode in ('US', 'CA')`",
                   "location": "query",
                   "type": "string"
                 },
@@ -946,7 +946,7 @@
       }
     }
   },
-  "revision": "20241105",
+  "revision": "20250423",
   "rootUrl": "https://travelpartner.googleapis.com/",
   "schemas": {
     "AccountLink": {
@@ -1246,7 +1246,8 @@
             "VR_WEBSITE_LINK_ROBOTED",
             "VR_PENDING_WEBSITE_CRAWLING",
             "VR_WEBSITE_LINK_WITH_CRAWLING_ERROR",
-            "VR_BRAND_MISSING_LANDING_PAGE"
+            "VR_BRAND_MISSING_LANDING_PAGE",
+            "VR_INVALID_ROOM_TYPE"
           ],
           "enumDeprecated": [
             false,
@@ -1300,11 +1301,12 @@
             true,
             false,
             false,
-            false,
+            true,
             false,
             false,
             false,
             true,
+            false,
             false,
             false,
             false,
@@ -1374,10 +1376,10 @@
             "Please use NON_VR_ACCOMMODATION_TYPE instead.",
             "Listing that is sent as a vacation rental is suspected to be a non-vacation rental accommodation type, such as a hotel, hostel, etc.",
             "Vacation rental listing brand name is too long.",
-            "Vacation rental listing is missing a brand name.",
+            "Google no longer requires brand names; this issue no longer occurs.",
             "This listing has a review that is missing a visit timestamp and the timestamp is required in the listing's country. The review should include \"servicedate\" if using XML markup or \"contentReferenceTime\" if using schema.org.",
             "An address should be added to this listing.",
-            "v2 The provided address is invalid. Review address requirements on the [dev guide](/hotels/vacation-rentals/dev-guide/vr-attributes). Debugging suggestions: 1. Confirm the address does not contain redundant information such as the country in both addr1 and country_code. 2. Use Google Maps to confirm if the address is formatted correctly for its region. 3. Use a [plus code](https://plus.codes) if the address continues to be invalid.",
+            "The provided address is invalid. Review address requirements on the [dev guide](/hotels/vacation-rentals/dev-guide/vr-attributes). Debugging suggestions: 1. Confirm the address does not contain redundant information such as the country in both addr1 and country_code. 2. Use Google Maps to confirm if the address is formatted correctly for its region. 3. Use a [plus code](https://plus.codes) if the address continues to be invalid.",
             "Deprecated: Replaced with more specifc errors or VR_ADDRESS_INVALID. Google detected that the provided address for this listing is incomplete. For example, it may be missing a unit number.",
             "The provided address is missing a street name.",
             "The provided address is missing a street number.",
@@ -1394,7 +1396,8 @@
             "Vacation rental listing has a website link that is blocked by a robots.txt",
             "Vacation rental listing has a website link that is still undergoing crawling.",
             "Vacation rental listing has a website link with a crawling error.",
-            "The brand of this vacation rental property doesn't have a landing page. Contact your account manager for details."
+            "The brand of this vacation rental property doesn't have a landing page. Contact your account manager for details.",
+            "The room type is invalid. Private rooms and shared rooms are part of shared accommodations, which are not currently supported on the platform."
           ],
           "type": "string"
         },
@@ -1649,7 +1652,8 @@
               "VR_WEBSITE_LINK_ROBOTED",
               "VR_PENDING_WEBSITE_CRAWLING",
               "VR_WEBSITE_LINK_WITH_CRAWLING_ERROR",
-              "VR_BRAND_MISSING_LANDING_PAGE"
+              "VR_BRAND_MISSING_LANDING_PAGE",
+              "VR_INVALID_ROOM_TYPE"
             ],
             "enumDeprecated": [
               false,
@@ -1703,11 +1707,12 @@
               true,
               false,
               false,
-              false,
+              true,
               false,
               false,
               false,
               true,
+              false,
               false,
               false,
               false,
@@ -1777,10 +1782,10 @@
               "Please use NON_VR_ACCOMMODATION_TYPE instead.",
               "Listing that is sent as a vacation rental is suspected to be a non-vacation rental accommodation type, such as a hotel, hostel, etc.",
               "Vacation rental listing brand name is too long.",
-              "Vacation rental listing is missing a brand name.",
+              "Google no longer requires brand names; this issue no longer occurs.",
               "This listing has a review that is missing a visit timestamp and the timestamp is required in the listing's country. The review should include \"servicedate\" if using XML markup or \"contentReferenceTime\" if using schema.org.",
               "An address should be added to this listing.",
-              "v2 The provided address is invalid. Review address requirements on the [dev guide](/hotels/vacation-rentals/dev-guide/vr-attributes). Debugging suggestions: 1. Confirm the address does not contain redundant information such as the country in both addr1 and country_code. 2. Use Google Maps to confirm if the address is formatted correctly for its region. 3. Use a [plus code](https://plus.codes) if the address continues to be invalid.",
+              "The provided address is invalid. Review address requirements on the [dev guide](/hotels/vacation-rentals/dev-guide/vr-attributes). Debugging suggestions: 1. Confirm the address does not contain redundant information such as the country in both addr1 and country_code. 2. Use Google Maps to confirm if the address is formatted correctly for its region. 3. Use a [plus code](https://plus.codes) if the address continues to be invalid.",
               "Deprecated: Replaced with more specifc errors or VR_ADDRESS_INVALID. Google detected that the provided address for this listing is incomplete. For example, it may be missing a unit number.",
               "The provided address is missing a street name.",
               "The provided address is missing a street number.",
@@ -1797,7 +1802,8 @@
               "Vacation rental listing has a website link that is blocked by a robots.txt",
               "Vacation rental listing has a website link that is still undergoing crawling.",
               "Vacation rental listing has a website link with a crawling error.",
-              "The brand of this vacation rental property doesn't have a landing page. Contact your account manager for details."
+              "The brand of this vacation rental property doesn't have a landing page. Contact your account manager for details.",
+              "The room type is invalid. Private rooms and shared rooms are part of shared accommodations, which are not currently supported on the platform."
             ],
             "type": "string"
           },
@@ -1818,8 +1824,25 @@
           "type": "string"
         },
         "liveOnGoogle": {
-          "description": "Optional. Whether the hotel appears in Google's hotel booking links. Declaration \u0026 behavior to get detection of presence/absence in JSON conversion.",
+          "deprecated": true,
+          "description": "Optional. DEPRECATED. Prefer live_on_google_status. Whether the hotel appears in Google's hotel booking links. Declaration \u0026 behavior to get detection of presence/absence in JSON conversion.",
           "type": "boolean"
+        },
+        "liveOnGoogleStatus": {
+          "description": "Optional. Whether the hotel appears in Google's hotel booking links. Declaration \u0026 behavior to get detection of presence/absence in JSON conversion.",
+          "enum": [
+            "LIVE_ON_GOOGLE_STATUS_UNSPECIFIED",
+            "LIVE_ON_GOOGLE_STATUS_ACTIVE",
+            "LIVE_ON_GOOGLE_STATUS_INACTIVE",
+            "LIVE_ON_GOOGLE_STATUS_ACTIVE_OUTSIDE_DSA_REGION"
+          ],
+          "enumDescriptions": [
+            "Not specified.",
+            "The property will show on Google unconditionally.",
+            "The property will not show on Google.",
+            "The property will show on Google for users outside of DSA regions. Current regions include: EU."
+          ],
+          "type": "string"
         },
         "matchFailureReasons": {
           "description": "The reasons why a hotel failed to match to a property on Maps.",
@@ -2673,8 +2696,18 @@
       "description": "The reasons that contributed to the price problem count and the total count for each reason.",
       "id": "PriceProblemCountDetails",
       "properties": {
+        "basePriceViolationsCount": {
+          "description": "Base price too low relative to total price.",
+          "format": "int64",
+          "type": "string"
+        },
         "hotelSuspendedCount": {
           "description": "The hotel was suspended. This may be due to persistent problems in areas such as incorrect taxes and fees.",
+          "format": "int64",
+          "type": "string"
+        },
+        "priceAccuracyIssueCount": {
+          "description": "Price accuracy issue.",
           "format": "int64",
           "type": "string"
         },
@@ -3109,8 +3142,25 @@
       "id": "SetLiveOnGoogleRequest",
       "properties": {
         "liveOnGoogle": {
-          "description": "Required. Whether the property will show on Google. When true, Google will show the properties if their integration is complete and the property is available. When false, Google will never show the properties.",
+          "deprecated": true,
+          "description": "Optional. DEPRECATED. Whether the property will show on Google. When true, Google will show the properties if their integration is complete and the property is available. When false, Google will never show the properties. Superseded by `live_on_google_status`. Only one of `live_on_google` or `live_on_google_status` should be set; if both are set, `live_on_google_status` will be used.",
           "type": "boolean"
+        },
+        "liveOnGoogleStatus": {
+          "description": "Optional. Whether the property will show on Google, with more granular controls than the original `live_on_google` boolean field. Only one of `live_on_google` or `live_on_google_status` should be set; if both are set, `live_on_google_status` will be used.",
+          "enum": [
+            "LIVE_ON_GOOGLE_STATUS_UNSPECIFIED",
+            "LIVE_ON_GOOGLE_STATUS_ACTIVE",
+            "LIVE_ON_GOOGLE_STATUS_INACTIVE",
+            "LIVE_ON_GOOGLE_STATUS_ACTIVE_OUTSIDE_DSA_REGION"
+          ],
+          "enumDescriptions": [
+            "Not specified.",
+            "The property will show on Google unconditionally.",
+            "The property will not show on Google.",
+            "The property will show on Google for users outside of DSA regions. Current regions include: EU."
+          ],
+          "type": "string"
         },
         "partnerHotelIds": {
           "description": "Required. Identifies the properties to update with the liveOnGoogle setting.",
@@ -3158,7 +3208,7 @@
           "type": "string"
         },
         "liveOnGooglePropertyCount": {
-          "description": "The number of properties that are Live on Google.",
+          "description": "The number of properties that are Live on Google. This includes properties that are conditionally active, e.g. LIVE_ON_GOOGLE_STATUS_ACTIVE_OUTSIDE_DSA_REGION.",
           "format": "int64",
           "type": "string"
         },

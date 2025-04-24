@@ -1,4 +1,4 @@
-// Copyright 2024 Google LLC.
+// Copyright 2025 Google LLC.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -708,14 +708,14 @@ type DataIssueDetail struct {
 	// such as a hotel, hostel, etc.
 	//   "BRAND_NAME_TOO_LONG" - Vacation rental listing brand name is too
 	// long.
-	//   "MISSING_BRAND_NAME" - Vacation rental listing is missing a brand
-	// name.
+	//   "MISSING_BRAND_NAME" - Google no longer requires brand names; this
+	// issue no longer occurs.
 	//   "REVIEW_MISSING_VISIT_TIMESTAMP" - This listing has a review that
 	// is missing a visit timestamp and the timestamp is required in the
 	// listing's country. The review should include "servicedate" if using
 	// XML markup or "contentReferenceTime" if using schema.org.
 	//   "VR_ADDRESS_MISSING" - An address should be added to this listing.
-	//   "VR_ADDRESS_INVALID" - v2 The provided address is invalid. Review
+	//   "VR_ADDRESS_INVALID" - The provided address is invalid. Review
 	// address requirements on the [dev
 	// guide](/hotels/vacation-rentals/dev-guide/vr-attributes). Debugging
 	// suggestions: 1. Confirm the address does not contain redundant
@@ -761,6 +761,9 @@ type DataIssueDetail struct {
 	//   "VR_BRAND_MISSING_LANDING_PAGE" - The brand of this vacation rental
 	// property doesn't have a landing page. Contact your account manager
 	// for details.
+	//   "VR_INVALID_ROOM_TYPE" - The room type is invalid. Private rooms
+	// and shared rooms are part of shared accommodations, which are not
+	// currently supported on the platform.
 	DataIssueType string `json:"dataIssueType,omitempty"`
 
 	// IsSelfResolving: Whether or not the issue is self-resolving. If true,
@@ -1177,14 +1180,14 @@ type HotelView struct {
 	// such as a hotel, hostel, etc.
 	//   "BRAND_NAME_TOO_LONG" - Vacation rental listing brand name is too
 	// long.
-	//   "MISSING_BRAND_NAME" - Vacation rental listing is missing a brand
-	// name.
+	//   "MISSING_BRAND_NAME" - Google no longer requires brand names; this
+	// issue no longer occurs.
 	//   "REVIEW_MISSING_VISIT_TIMESTAMP" - This listing has a review that
 	// is missing a visit timestamp and the timestamp is required in the
 	// listing's country. The review should include "servicedate" if using
 	// XML markup or "contentReferenceTime" if using schema.org.
 	//   "VR_ADDRESS_MISSING" - An address should be added to this listing.
-	//   "VR_ADDRESS_INVALID" - v2 The provided address is invalid. Review
+	//   "VR_ADDRESS_INVALID" - The provided address is invalid. Review
 	// address requirements on the [dev
 	// guide](/hotels/vacation-rentals/dev-guide/vr-attributes). Debugging
 	// suggestions: 1. Confirm the address does not contain redundant
@@ -1230,6 +1233,9 @@ type HotelView struct {
 	//   "VR_BRAND_MISSING_LANDING_PAGE" - The brand of this vacation rental
 	// property doesn't have a landing page. Contact your account manager
 	// for details.
+	//   "VR_INVALID_ROOM_TYPE" - The room type is invalid. Private rooms
+	// and shared rooms are part of shared accommodations, which are not
+	// currently supported on the platform.
 	DataIssues []string `json:"dataIssues,omitempty"`
 
 	// GoogleClusterId: The Google Maps identifier for the hotel.
@@ -1241,10 +1247,26 @@ type HotelView struct {
 	// GoogleHotelId: Google's canonical ID for the hotel.
 	GoogleHotelId uint64 `json:"googleHotelId,omitempty,string"`
 
-	// LiveOnGoogle: Optional. Whether the hotel appears in Google's hotel
-	// booking links. Declaration & behavior to get detection of
-	// presence/absence in JSON conversion.
+	// LiveOnGoogle: Optional. DEPRECATED. Prefer live_on_google_status.
+	// Whether the hotel appears in Google's hotel booking links.
+	// Declaration & behavior to get detection of presence/absence in JSON
+	// conversion.
 	LiveOnGoogle bool `json:"liveOnGoogle,omitempty"`
+
+	// LiveOnGoogleStatus: Optional. Whether the hotel appears in Google's
+	// hotel booking links. Declaration & behavior to get detection of
+	// presence/absence in JSON conversion.
+	//
+	// Possible values:
+	//   "LIVE_ON_GOOGLE_STATUS_UNSPECIFIED" - Not specified.
+	//   "LIVE_ON_GOOGLE_STATUS_ACTIVE" - The property will show on Google
+	// unconditionally.
+	//   "LIVE_ON_GOOGLE_STATUS_INACTIVE" - The property will not show on
+	// Google.
+	//   "LIVE_ON_GOOGLE_STATUS_ACTIVE_OUTSIDE_DSA_REGION" - The property
+	// will show on Google for users outside of DSA regions. Current regions
+	// include: EU.
+	LiveOnGoogleStatus string `json:"liveOnGoogleStatus,omitempty"`
 
 	// MatchFailureReasons: The reasons why a hotel failed to match to a
 	// property on Maps.
@@ -2489,9 +2511,15 @@ func (s *PriceMissingCountDetails) MarshalJSON() ([]byte, error) {
 // PriceProblemCountDetails: The reasons that contributed to the price
 // problem count and the total count for each reason.
 type PriceProblemCountDetails struct {
+	// BasePriceViolationsCount: Base price too low relative to total price.
+	BasePriceViolationsCount int64 `json:"basePriceViolationsCount,omitempty,string"`
+
 	// HotelSuspendedCount: The hotel was suspended. This may be due to
 	// persistent problems in areas such as incorrect taxes and fees.
 	HotelSuspendedCount int64 `json:"hotelSuspendedCount,omitempty,string"`
+
+	// PriceAccuracyIssueCount: Price accuracy issue.
+	PriceAccuracyIssueCount int64 `json:"priceAccuracyIssueCount,omitempty,string"`
 
 	// PriceUnusuallyHighCount: The price given for this itinerary seemed
 	// oddly high compared to regional trends.
@@ -2504,18 +2532,19 @@ type PriceProblemCountDetails struct {
 	// TaxesAndFeesMissingCount: Taxes and fees were missing from pricing.
 	TaxesAndFeesMissingCount int64 `json:"taxesAndFeesMissingCount,omitempty,string"`
 
-	// ForceSendFields is a list of field names (e.g. "HotelSuspendedCount")
-	// to unconditionally include in API requests. By default, fields with
-	// empty or default values are omitted from API requests. However, any
-	// non-pointer, non-interface field appearing in ForceSendFields will be
-	// sent to the server regardless of whether the field is empty or not.
-	// This may be used to include empty fields in Patch requests.
+	// ForceSendFields is a list of field names (e.g.
+	// "BasePriceViolationsCount") to unconditionally include in API
+	// requests. By default, fields with empty or default values are omitted
+	// from API requests. However, any non-pointer, non-interface field
+	// appearing in ForceSendFields will be sent to the server regardless of
+	// whether the field is empty or not. This may be used to include empty
+	// fields in Patch requests.
 	ForceSendFields []string `json:"-"`
 
-	// NullFields is a list of field names (e.g. "HotelSuspendedCount") to
-	// include in API requests with the JSON null value. By default, fields
-	// with empty values are omitted from API requests. However, any field
-	// with an empty value appearing in NullFields will be sent to the
+	// NullFields is a list of field names (e.g. "BasePriceViolationsCount")
+	// to include in API requests with the JSON null value. By default,
+	// fields with empty values are omitted from API requests. However, any
+	// field with an empty value appearing in NullFields will be sent to the
 	// server as null. It is an error if a field in this list has a
 	// non-empty value. This may be used to include null fields in Patch
 	// requests.
@@ -3146,11 +3175,31 @@ func (s *Review) MarshalJSON() ([]byte, error) {
 // SetLiveOnGoogleRequest: Request message for
 // HotelService.SetLiveOnGoogle.
 type SetLiveOnGoogleRequest struct {
-	// LiveOnGoogle: Required. Whether the property will show on Google.
-	// When true, Google will show the properties if their integration is
-	// complete and the property is available. When false, Google will never
-	// show the properties.
+	// LiveOnGoogle: Optional. DEPRECATED. Whether the property will show on
+	// Google. When true, Google will show the properties if their
+	// integration is complete and the property is available. When false,
+	// Google will never show the properties. Superseded by
+	// `live_on_google_status`. Only one of `live_on_google` or
+	// `live_on_google_status` should be set; if both are set,
+	// `live_on_google_status` will be used.
 	LiveOnGoogle bool `json:"liveOnGoogle,omitempty"`
+
+	// LiveOnGoogleStatus: Optional. Whether the property will show on
+	// Google, with more granular controls than the original
+	// `live_on_google` boolean field. Only one of `live_on_google` or
+	// `live_on_google_status` should be set; if both are set,
+	// `live_on_google_status` will be used.
+	//
+	// Possible values:
+	//   "LIVE_ON_GOOGLE_STATUS_UNSPECIFIED" - Not specified.
+	//   "LIVE_ON_GOOGLE_STATUS_ACTIVE" - The property will show on Google
+	// unconditionally.
+	//   "LIVE_ON_GOOGLE_STATUS_INACTIVE" - The property will not show on
+	// Google.
+	//   "LIVE_ON_GOOGLE_STATUS_ACTIVE_OUTSIDE_DSA_REGION" - The property
+	// will show on Google for users outside of DSA regions. Current regions
+	// include: EU.
+	LiveOnGoogleStatus string `json:"liveOnGoogleStatus,omitempty"`
 
 	// PartnerHotelIds: Required. Identifies the properties to update with
 	// the liveOnGoogle setting.
@@ -3226,7 +3275,8 @@ type SummarizeHotelViewsResponse struct {
 	LastManifestUpdateTime string `json:"lastManifestUpdateTime,omitempty"`
 
 	// LiveOnGooglePropertyCount: The number of properties that are Live on
-	// Google.
+	// Google. This includes properties that are conditionally active, e.g.
+	// LIVE_ON_GOOGLE_STATUS_ACTIVE_OUTSIDE_DSA_REGION.
 	LiveOnGooglePropertyCount int64 `json:"liveOnGooglePropertyCount,omitempty,string"`
 
 	// MatchedPropertyCount: The number of properties that match Google's
@@ -5165,12 +5215,15 @@ func (r *AccountsHotelViewsService) List(parent string) *AccountsHotelViewsListC
 // omitted. Conditions cannot be joined. The `hotelId` field can be used
 // to select specific hotels. The `liveOnGoogle` field can select
 // properties that Google shows, or properties that are omitted in
-// google search results. The `matchStatus` field can be used to filter
-// the list of HotelViews returned for the account. Examples of valid
-// conditions and their syntax are as follows: * `hotelId = 'hotel_ABC'`
-// * `hotelId in ('hotel_ABC', 'hotel_XYZ')` * `liveOnGoogle = 'TRUE'` *
-// `liveOnGoogle = 'FALSE'` * `matchStatus = 'NOT_MATCHED'` *
-// `matchStatus in ('NOT_MATCHED', 'MATCHED', 'MAP_OVERLAP')`
+// google search results. A value of 'TRUE' includes properties that are
+// conditionally active, e.g.
+// LIVE_ON_GOOGLE_STATUS_ACTIVE_OUTSIDE_DSA_REGION. The `matchStatus`
+// field can be used to filter the list of HotelViews returned for the
+// account. Examples of valid conditions and their syntax are as
+// follows: * `hotelId = 'hotel_ABC'` * `hotelId in ('hotel_ABC',
+// 'hotel_XYZ')` * `liveOnGoogle = 'TRUE'` * `liveOnGoogle = 'FALSE'` *
+// `matchStatus = 'NOT_MATCHED'` * `matchStatus in ('NOT_MATCHED',
+// 'MATCHED', 'MAP_OVERLAP')`
 func (c *AccountsHotelViewsListCall) Filter(filter string) *AccountsHotelViewsListCall {
 	c.urlParams_.Set("filter", filter)
 	return c
@@ -5298,7 +5351,7 @@ func (c *AccountsHotelViewsListCall) Do(opts ...googleapi.CallOption) (*ListHote
 	//   ],
 	//   "parameters": {
 	//     "filter": {
-	//       "description": "Optional. The conditions (fields and expressions) used to filter HotelViews. The syntax requires spaces surrounding the `in` operator. Otherwise, spaces can be omitted. Conditions cannot be joined. The `hotelId` field can be used to select specific hotels. The `liveOnGoogle` field can select properties that Google shows, or properties that are omitted in google search results. The `matchStatus` field can be used to filter the list of HotelViews returned for the account. Examples of valid conditions and their syntax are as follows: * `hotelId = 'hotel_ABC'` * `hotelId in ('hotel_ABC', 'hotel_XYZ')` * `liveOnGoogle = 'TRUE'` * `liveOnGoogle = 'FALSE'` * `matchStatus = 'NOT_MATCHED'` * `matchStatus in ('NOT_MATCHED', 'MATCHED', 'MAP_OVERLAP')`",
+	//       "description": "Optional. The conditions (fields and expressions) used to filter HotelViews. The syntax requires spaces surrounding the `in` operator. Otherwise, spaces can be omitted. Conditions cannot be joined. The `hotelId` field can be used to select specific hotels. The `liveOnGoogle` field can select properties that Google shows, or properties that are omitted in google search results. A value of 'TRUE' includes properties that are conditionally active, e.g. LIVE_ON_GOOGLE_STATUS_ACTIVE_OUTSIDE_DSA_REGION. The `matchStatus` field can be used to filter the list of HotelViews returned for the account. Examples of valid conditions and their syntax are as follows: * `hotelId = 'hotel_ABC'` * `hotelId in ('hotel_ABC', 'hotel_XYZ')` * `liveOnGoogle = 'TRUE'` * `liveOnGoogle = 'FALSE'` * `matchStatus = 'NOT_MATCHED'` * `matchStatus in ('NOT_MATCHED', 'MATCHED', 'MAP_OVERLAP')`",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
@@ -6085,7 +6138,7 @@ type AccountsListingsVerifyCall struct {
 }
 
 // Verify: Returns verified listings with data issues and serving
-// eligibilities.
+// eligibilities for VR partners only.
 //
 //   - parent: The resource name of the account being queried. The format
 //     is `accounts/{account_id}`.
@@ -6187,7 +6240,7 @@ func (c *AccountsListingsVerifyCall) Do(opts ...googleapi.CallOption) (*VerifyLi
 	}
 	return ret, nil
 	// {
-	//   "description": "Returns verified listings with data issues and serving eligibilities.",
+	//   "description": "Returns verified listings with data issues and serving eligibilities for VR partners only.",
 	//   "flatPath": "v3/accounts/{accountsId}/listings:verify",
 	//   "httpMethod": "POST",
 	//   "id": "travelpartner.accounts.listings.verify",
@@ -6262,17 +6315,16 @@ func (c *AccountsParticipationReportViewsQueryCall) AggregateBy(aggregateBy stri
 // field is required. All other fields are optional. Examples of valid
 // conditions are as follows: * `advanceBookingWindow = 2` *
 // `advanceBookingWindow >= 0` * `advanceBookingWindow <= 5` *
-// `advanceBookingWindow between 1 and 5` * `checkinDate = '2020-10-01'`
-// * `checkinDate >= '2020-10-01'` * `checkinDate <= '2020-10-01'` *
-// `checkinDate between '2020-10-01' and '2020-10-05'` * `date =
-// '2020-02-04'` * `date between '2020-02-04' and '2020-02-09'` *
-// `deviceType = 'TABLET'` * `deviceType in ('MOBILE', 'TABLET')` *
-// `hotelRegionCode = 'US'` * `hotelRegionCode in ('US', 'CA')` *
-// `lengthOfStayDays = 2` * `lengthOfStayDays >= 0` * `lengthOfStayDays
-// <= 5` * `lengthOfStayDays between 1 and 5` * `occupancy = 2` *
-// `occupancy >= 0` * `occupancy <= 5` * `occupancy between 1 and 5` *
-// `partnerHotelId = 'AAA'` * `partnerHotelId in ('AAA', 'BBB')` *
-// `userRegionCode = 'US'` * `userRegionCode in ('US', 'CA')`
+// `checkinDate = '2020-10-01'` * `checkinDate >= '2020-10-01'` *
+// `checkinDate <= '2020-10-01'` * `checkinDate between '2020-10-01' and
+// '2020-10-05'` * `date = '2020-02-04'` * `date between '2020-02-04'
+// and '2020-02-09'` * `deviceType = 'TABLET'` * `deviceType in
+// ('MOBILE', 'TABLET')` * `hotelRegionCode = 'US'` * `hotelRegionCode
+// in ('US', 'CA')` * `lengthOfStayDays = 2` * `lengthOfStayDays >= 0` *
+// `lengthOfStayDays <= 5` * `occupancy = 2` * `occupancy >= 0` *
+// `occupancy <= 5` * `occupancy between 1 and 5` * `partnerHotelId =
+// 'AAA'` * `partnerHotelId in ('AAA', 'BBB')` * `userRegionCode = 'US'`
+// * `userRegionCode in ('US', 'CA')`
 func (c *AccountsParticipationReportViewsQueryCall) Filter(filter string) *AccountsParticipationReportViewsQueryCall {
 	c.urlParams_.Set("filter", filter)
 	return c
@@ -6411,7 +6463,7 @@ func (c *AccountsParticipationReportViewsQueryCall) Do(opts ...googleapi.CallOpt
 	//       "type": "string"
 	//     },
 	//     "filter": {
-	//       "description": "The conditions (fields and expressions) used to filter the participation metrics for the account being queried. The syntax requires spaces surrounding the `in` operator. Otherwise, spaces can be omitted. Conditions can be joined using the `AND` operator. **Important:** The correct syntax to add multiple conditions is: `\"?filter==%20AND%20=...\"` The `date` field is required. All other fields are optional. Examples of valid conditions are as follows: * `advanceBookingWindow = 2` * `advanceBookingWindow \u003e= 0` * `advanceBookingWindow \u003c= 5` * `advanceBookingWindow between 1 and 5` * `checkinDate = '2020-10-01'` * `checkinDate \u003e= '2020-10-01'` * `checkinDate \u003c= '2020-10-01'` * `checkinDate between '2020-10-01' and '2020-10-05'` * `date = '2020-02-04'` * `date between '2020-02-04' and '2020-02-09'` * `deviceType = 'TABLET'` * `deviceType in ('MOBILE', 'TABLET')` * `hotelRegionCode = 'US'` * `hotelRegionCode in ('US', 'CA')` * `lengthOfStayDays = 2` * `lengthOfStayDays \u003e= 0` * `lengthOfStayDays \u003c= 5` * `lengthOfStayDays between 1 and 5` * `occupancy = 2` * `occupancy \u003e= 0` * `occupancy \u003c= 5` * `occupancy between 1 and 5` * `partnerHotelId = 'AAA'` * `partnerHotelId in ('AAA', 'BBB')` * `userRegionCode = 'US'` * `userRegionCode in ('US', 'CA')`",
+	//       "description": "The conditions (fields and expressions) used to filter the participation metrics for the account being queried. The syntax requires spaces surrounding the `in` operator. Otherwise, spaces can be omitted. Conditions can be joined using the `AND` operator. **Important:** The correct syntax to add multiple conditions is: `\"?filter==%20AND%20=...\"` The `date` field is required. All other fields are optional. Examples of valid conditions are as follows: * `advanceBookingWindow = 2` * `advanceBookingWindow \u003e= 0` * `advanceBookingWindow \u003c= 5` * `checkinDate = '2020-10-01'` * `checkinDate \u003e= '2020-10-01'` * `checkinDate \u003c= '2020-10-01'` * `checkinDate between '2020-10-01' and '2020-10-05'` * `date = '2020-02-04'` * `date between '2020-02-04' and '2020-02-09'` * `deviceType = 'TABLET'` * `deviceType in ('MOBILE', 'TABLET')` * `hotelRegionCode = 'US'` * `hotelRegionCode in ('US', 'CA')` * `lengthOfStayDays = 2` * `lengthOfStayDays \u003e= 0` * `lengthOfStayDays \u003c= 5` * `occupancy = 2` * `occupancy \u003e= 0` * `occupancy \u003c= 5` * `occupancy between 1 and 5` * `partnerHotelId = 'AAA'` * `partnerHotelId in ('AAA', 'BBB')` * `userRegionCode = 'US'` * `userRegionCode in ('US', 'CA')`",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
